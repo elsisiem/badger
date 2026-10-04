@@ -25,10 +25,11 @@ app.use("*", async (c, next) => {
 app.route("/", api);
 
 // The built React app. Anything that is not an API or sandbox route falls back to index.html (client-side routing).
-const webRoot = join(process.cwd(), "dist", "web");
+const webRoot = existsSync(join(process.cwd(), "dist", "web")) ? join(process.cwd(), "dist", "web") : join(process.cwd(), "public");
+const webRel = webRoot.endsWith("web") ? "./dist/web" : "./public";
 if (existsSync(webRoot)) {
-  app.use("/assets/*", serveStatic({ root: "./dist/web" }));
-  app.use("/*", serveStatic({ root: "./dist/web" }));
+  app.use("/assets/*", serveStatic({ root: webRel }));
+  app.use("/*", serveStatic({ root: webRel }));
   const index = readFileSync(join(webRoot, "index.html"), "utf8");
   app.get("*", (c) => (c.req.path.startsWith("/api/") ? c.json({ error: "Not found" }, 404) : c.html(index)));
 } else {

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Badger: the agent that nags so you don't have to</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%A6%A1%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header class="top">
+  <a class="logo" href="/" id="home"><svg viewBox="0 0 64 64" width="38" height="38"><use href="#badger-face"/></svg><span>badger</span></a>
+  <span class="grow"></span>
+  <span id="who" class="who"></span>
+  <button class="btn ghost sm" id="logout" hidden>Reset demo</button>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="badger-face" viewBox="0 0 64 64">
+    <ellipse cx="32" cy="38" rx="25" ry="22" fill="#2b2b33"/>
+    <path d="M32 16 C 22 16 14 24 12 34 C 18 28 25 26 32 26 C 39 26 46 28 52 34 C 50 24 42 16 32 16Z" fill="#f4efe6"/>
+    <ellipse cx="12" cy="20" rx="6" ry="7" fill="#2b2b33"/><ellipse cx="52" cy="20" rx="6" ry="7" fill="#2b2b33"/>
+    <ellipse cx="32" cy="44" rx="13" ry="10" fill="#f4efe6"/>
+    <circle cx="23" cy="36" r="4" fill="#fff"/><circle cx="41" cy="36" r="4" fill="#fff"/>
+    <circle cx="24" cy="36.5" r="2" fill="#111"/><circle cx="40" cy="36.5" r="2" fill="#111"/>
+    <ellipse cx="32" cy="41" rx="4" ry="3" fill="#111"/>
+    <path d="M27 48 Q32 52 37 48" stroke="#111" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </symbol>
+</defs></svg>
+
+<main id="app"></main>
+<div class="toast" id="toast" role="status"></div>
+<script src="/app.js"></script>
+</body>
+</html>
