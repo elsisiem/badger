@@ -213,7 +213,7 @@
 
       const r = c.research || {};
       const srcs = [...(r.policies || []).map((p) => [p.claim, p.quote, p.url]), ...(r.clocks || []).map((p) => [p.label + (p.days ? " (" + p.days + " days)" : ""), p.quote, p.url])];
-      if (srcs.length) right.append(h("div", { class: "box" }, h("h3", {}, "Sourced facts"), h("p", { class: "fine" }, "Found by Exa. Badger only cites what it can quote."), ...srcs.slice(0, 5).map(([t, q, u]) => h("div", { class: "src" }, h("b", {}, t), h("div", {}, "“" + q.slice(0, 220) + "”"), h("a", { href: u, target: "_blank", rel: "noopener noreferrer" }, new URL(u).hostname)))));
+      if (srcs.length) right.append(h("div", { class: "box" }, h("h3", {}, "Sourced facts"), h("p", { class: "fine" }, "Found by Exa. Badger only cites what it can quote."), ...srcs.slice(0, 5).map(([t, q, u]) => h("div", { class: "src" }, h("b", {}, t), h("div", {}, "“" + (q.length > 220 ? q.slice(0, 220).trimEnd() + "…" : q) + "”"), h("a", { href: u, target: "_blank", rel: "noopener noreferrer" }, new URL(u).hostname)))));
 
       if (messages.length) right.append(h("div", { class: "box" }, h("h3", {}, "The email thread"), ...messages.map((m) => h("div", { class: "msg " + m.direction }, h("small", {}, (m.direction === "out" ? "Badger to " : "From ") + c.counterparty_name), m.body.replace(/\n--\nSent by Badger[\s\S]*$/, "")))));
 
