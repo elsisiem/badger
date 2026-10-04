@@ -129,6 +129,17 @@ export async function tick() {
     );
     for (const { id } of due) void runNextStep(id);
 
+    // Fast-forward (sandbox cases only): skip the waiting, and let Badger approve its own drafts so the story plays out.
+    await q(`UPDATE cases SET next_due_at = now() WHERE autoplay AND scenario IS NOT NULL AND status = 'waiting' AND next_due_at > now()`);
+    const auto = await q<{ id: string; kind: string; case_id: string }>(
+      `SELECT a.id, a.kind, a.case_id FROM actions a JOIN cases c ON c.id = a.case_id
+       WHERE c.autoplay AND c.scenario IS NOT NULL AND a.status = 'pending' AND a.created_at < now() - interval '2 seconds' LIMIT 5`,
+    );
+    for (const a of auto) {
+      void addEvent(a.case_id, "fast_forward", "Fast-forward: approved for you", "In the sandbox, fast-forward approves Badger's drafts so you can watch the whole story.");
+      void submitDecision(a.id, a.kind === "need_info" ? { decision: "approve", answer: "Yes, that is right." } : { decision: "approve" }).catch((e) => console.error("[fast-forward]", e.message));
+    }
+
     // A run that died mid-step (restart, crash) leaves the case 'working': hand it back to the clock.
     await q(`UPDATE cases SET status = 'waiting', working_since = NULL, next_due_at = now() WHERE status = 'working' AND working_since < now() - interval '4 minutes'`);
 

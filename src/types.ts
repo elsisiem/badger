@@ -67,6 +67,7 @@ export interface CaseRow {
   next_due_at: string | null;
   emails_sent: number;
   working_since: string | null;
+  autoplay: boolean;
   created_at: string;
   updated_at: string;
   resolved_at: string | null;

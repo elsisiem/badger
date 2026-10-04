@@ -9,7 +9,7 @@ import { dayMs, isoIn } from "../src/util";
 const baseCase = (over: Partial<CaseRow> = {}): CaseRow => ({
   id: "11111111-2222-3333-4444-555555555555", user_id: "u", title: "t", counterparty_name: "Acme Gym", counterparty_email: "help@acme.com",
   counterparty_type: "organization", ask: "refund", amount_cents: 1000, currency: "USD", context: "", tone: "polite", status: "planning", mood: "sniffing",
-  scenario: null, clock_scale: 1, research: {}, plan: [], summary: null, next_due_at: null, emails_sent: 0, working_since: null,
+  scenario: null, clock_scale: 1, research: {}, plan: [], summary: null, next_due_at: null, emails_sent: 0, working_since: null, autoplay: false,
   created_at: new Date("2026-10-01T00:00:00Z").toISOString(), updated_at: "", resolved_at: null, ...over,
 });
 const research = (over: Partial<Research> = {}): Research => ({ contacts: [], policies: [], clocks: [], regulators: [], searched_at: "", queries: [], ...over });

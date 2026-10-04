@@ -10,7 +10,7 @@ import { env } from "./env";
 import { getMastra } from "./registry";
 import { readActionToken } from "./notify";
 import { gymContactPage, gymFormSubmitted, gymPolicyPage, gymThanksPage, listScenarios, SCENARIOS } from "./sim";
-import { addEvent, getAction, getCase, getUser, publicCase, type ActionRow } from "./store";
+import { addEvent, getAction, getCase, getUser, patchCase, publicCase, type ActionRow } from "./store";
 import type { CaseRow, UserRow } from "./types";
 
 type Env = { Variables: Vars };
@@ -128,6 +128,16 @@ api.post("/api/cases/:id/stop", requireUser, async (c) => {
   const row = await ownCase(c);
   if (!row) return c.json({ error: "Not found." }, 404);
   await stopCase(row.id, "You told Badger to stop.");
+  return c.json({ ok: true });
+});
+
+api.post("/api/cases/:id/fast-forward", requireUser, async (c) => {
+  const row = await ownCase(c);
+  if (!row) return c.json({ error: "Not found." }, 404);
+  if (!row.scenario) return c.json({ error: "Fast-forward only exists in the sandbox demo. Real cases run on a real clock." }, 400);
+  if (["resolved", "stopped"].includes(row.status)) return c.json({ ok: true });
+  await patchCase(row.id, { autoplay: true, ...(row.status === "waiting" ? { next_due_at: new Date().toISOString() } : {}) });
+  await addEvent(row.id, "fast_forward", "Fast-forward on", "Badger skips the waiting and approves its own drafts. Watch the timeline race to the end.");
   return c.json({ ok: true });
 });
 

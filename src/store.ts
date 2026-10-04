@@ -92,6 +92,7 @@ export const publicCase = (c: CaseRow) => ({
   summary: c.summary,
   next_due_at: c.next_due_at,
   emails_sent: c.emails_sent,
+  autoplay: c.autoplay,
   created_at: c.created_at,
   updated_at: c.updated_at,
   resolved_at: c.resolved_at,

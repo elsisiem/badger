@@ -17,7 +17,7 @@ export interface Scenario {
   key: "gym" | "roommate";
   label: string;
   blurb: string;
-  emoji: string;
+  icon: "dumbbell" | "receipt";
   inbox: string;
   case: {
     title: string;
@@ -35,7 +35,7 @@ export const SCENARIOS: Record<string, Scenario> = {
     key: "gym",
     label: "The gym that won't let go",
     blurb: "You cancelled. They kept charging. Their reply: email isn't allowed, use the web form. Watch Badger fill it in a real cloud browser, then quote their own policy back at them.",
-    emoji: "🏋️",
+    icon: "dumbbell",
     inbox: env.simInboxes.gym,
     case: {
       title: "Gym still charging me after I cancelled",
@@ -52,7 +52,7 @@ export const SCENARIOS: Record<string, Scenario> = {
     key: "roommate",
     label: "The roommate who 'forgot'",
     blurb: "$64.50 for the electric bill and the Costco run. Nobody wants to be the one who keeps asking. Badger asks, kindly, as many times as it takes.",
-    emoji: "🧾",
+    icon: "receipt",
     inbox: env.simInboxes.roommate,
     case: {
       title: "Alex owes me for the electric bill and Costco",
@@ -108,12 +108,12 @@ const SCRIPT: Record<string, (stage: number, c: CaseRow) => { directive: string;
   roommate: (stage) =>
     stage <= 1
       ? {
-          directive: `You are Alex, a friendly, slightly flaky roommate. Apologise warmly for forgetting, say you'll Venmo the money tonight. Casual lowercase vibe, one emoji max.`,
-          fallback: `omg i'm so sorry, completely forgot!! i'll venmo you tonight, promise 🙈`,
+          directive: `You are Alex, a friendly, slightly flaky roommate. Apologise warmly for forgetting, say you'll Venmo the money tonight. Casual lowercase vibe, no emoji.`,
+          fallback: `omg i'm so sorry, completely forgot!! i'll venmo you tonight, promise`,
         }
       : {
-          directive: `You are Alex. You just sent the full $64.50 on Venmo. Say so, casually, and thank them for the patience. One emoji max.`,
-          fallback: `ugh yes!! just sent you the full $64.50 on venmo, thanks for being patient with me 🙌`,
+          directive: `You are Alex. You just sent the full $64.50 on Venmo. Say so, casually, and thank them for the patience. No emoji.`,
+          fallback: `ugh yes!! just sent you the full $64.50 on venmo, thanks for being patient with me`,
         },
 };
 
@@ -194,5 +194,5 @@ export async function gymFormSubmitted(form: Record<string, string>) {
   })();
 }
 
-export const listScenarios = () => Object.values(SCENARIOS).map(({ key, label, blurb, emoji }) => ({ key, label, blurb, emoji }));
+export const listScenarios = () => Object.values(SCENARIOS).map(({ key, label, blurb, icon }) => ({ key, label, blurb, icon }));
 export { q };

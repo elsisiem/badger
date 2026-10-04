@@ -10,16 +10,22 @@ import { AssistantChatTransport, useChatRuntime } from "@assistant-ui/react-ai-s
 
 let onOpened: (caseId: string) => void = () => {};
 
+const Face = ({ mood, size = 28 }: { mood: string; size?: number }) => (
+  <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
+    <use href={`#bf-${mood}`} />
+  </svg>
+);
+
 function CaseCard(props: any) {
   const r = props.result as { ok?: boolean; case_id?: string; title?: string; error?: string } | undefined;
   useEffect(() => {
     if (r?.ok && r.case_id) onOpened(r.case_id); // jump to the case page as soon as it exists
   }, [r?.ok, r?.case_id]);
-  if (props.status?.type === "running" || !r) return <div className="bc-card bc-card-wait">🦡 Opening the case…</div>;
-  if (!r.ok) return <div className="bc-card bc-card-err">Couldn't open it: {r.error}</div>;
+  if (props.status?.type === "running" || !r) return <div className="bc-card bc-card-wait"><Face mood="sniffing" size={30} /> Opening the case...</div>;
+  if (!r.ok) return <div className="bc-card bc-card-err">Could not open it: {r.error}</div>;
   return (
     <div className="bc-card">
-      <div className="bc-card-t">🦡 Case opened</div>
+      <div className="bc-card-t"><Face mood="victory" size={30} /> Case opened</div>
       <div className="bc-card-b">{r.title}</div>
       <a className="btn sm" href={`#/case/${r.case_id}`} onClick={() => r.case_id && onOpened(r.case_id)}>
         Watch Badger work →
@@ -34,9 +40,13 @@ function Message() {
   const role = useAuiState((s: any) => s.message.role);
   return (
     <MessagePrimitive.Root className={`bc-msg ${role === "user" ? "bc-user" : "bc-bot"}`}>
-      {role !== "user" && <span className="bc-avatar">🦡</span>}
+      {role !== "user" && (
+        <span className="bc-avatar">
+          <Face mood="neutral" size={34} />
+        </span>
+      )}
       <div className="bc-bubble">
-        <MessagePrimitive.Parts components={{ Text, tools: { by_name: { open_case: CaseCard }, Fallback: () => <div className="bc-tool">🔎 looking something up…</div> } } as any} />
+        <MessagePrimitive.Parts components={{ Text, tools: { by_name: { open_case: CaseCard }, Fallback: () => <div className="bc-tool">Looking something up...</div> } } as any} />
       </div>
     </MessagePrimitive.Root>
   );
@@ -56,7 +66,7 @@ function Chat() {
         <ThreadPrimitive.Viewport className="bc-viewport">
           <AuiIf condition={(s: any) => s.thread.isEmpty}>
             <div className="bc-welcome">
-              <div className="bc-hi">🦡 Who's ignoring you?</div>
+              <div className="bc-hi">Who's ignoring you?</div>
               <p>Tell me in your own words. I'll ask only what I need, then open the case. Nothing is sent until you approve it.</p>
               <div className="bc-starters">
                 {STARTERS.map((t) => (

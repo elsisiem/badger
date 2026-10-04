@@ -4,31 +4,79 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Badger: the agent that nags so you don't have to</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E%F0%9F%A6%A1%3C/text%3E%3C/svg%3E">
+<meta name="description" content="Someone owes you. Badger researches your rights, drafts each nudge for your approval, sends it from its own inbox, reads the replies and escalates. Built with Mastra, AgentMail, Exa, Kernel and Neon.">
+<meta name="theme-color" content="#f6f1e7">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="alternate icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Badger: the agent that nags so you don't have to">
+<meta property="og:description" content="Research, draft, approve, send, read the reply, escalate. Watch a full case play out in 60 seconds.">
+<meta property="og:image" content="https://badger-nags.fly.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <!-- ===== Badger: one mascot, six expressions. The face IS the status. ===== -->
+  <g id="bf-body">
+    <ellipse cx="12" cy="20" rx="6.5" ry="7.5" fill="#2b2b33"/><ellipse cx="52" cy="20" rx="6.5" ry="7.5" fill="#2b2b33"/>
+    <ellipse cx="32" cy="38" rx="25" ry="22" fill="#2b2b33"/>
+    <path d="M32 15C21 15 13 23 11 35C18 28 25 26 32 26C39 26 46 28 53 35C51 23 43 15 32 15Z" fill="#f4efe6"/>
+    <ellipse cx="32" cy="46" rx="13" ry="9.5" fill="#f4efe6"/>
+    <ellipse cx="32" cy="41.5" rx="4.2" ry="3" fill="#15151a"/>
+  </g>
+  <g id="bf-eyes"><circle cx="23" cy="35" r="4.4" fill="#fff"/><circle cx="41" cy="35" r="4.4" fill="#fff"/><circle cx="23" cy="35.4" r="2.2" fill="#15151a"/><circle cx="41" cy="35.4" r="2.2" fill="#15151a"/></g>
+  <symbol id="bf-neutral" viewBox="0 0 64 64"><use href="#bf-body"/><use href="#bf-eyes"/><path d="M26.5 49Q32 53.5 37.5 49" stroke="#15151a" stroke-width="2.2" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="bf-sniffing" viewBox="0 0 64 64"><use href="#bf-body"/>
+    <circle cx="23" cy="35" r="4.4" fill="#fff"/><circle cx="41" cy="35" r="4.4" fill="#fff"/><circle cx="21.4" cy="36.4" r="2.2" fill="#15151a"/><circle cx="39.4" cy="36.4" r="2.2" fill="#15151a"/>
+    <path d="M28 49.5Q32 51.5 36 49.5" stroke="#15151a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <circle cx="52" cy="50" r="7.5" fill="#f2a93b" fill-opacity=".5" stroke="#22232b" stroke-width="2.4"/><path d="M46.6 55.6L39 62.5" stroke="#22232b" stroke-width="3.6" stroke-linecap="round"/></symbol>
+  <symbol id="bf-napping" viewBox="0 0 64 64"><use href="#bf-body"/>
+    <path d="M18.5 36Q23 40.5 27.5 36M36.5 36Q41 40.5 45.5 36" stroke="#f4efe6" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <path d="M28.5 50H35.5" stroke="#15151a" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M47 9h6.5l-6.5 7.5h6.5M56 1.5h4.5L56 6.5h4.5" stroke="#f2a93b" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="bf-nagging" viewBox="0 0 64 64"><use href="#bf-body"/><use href="#bf-eyes"/>
+    <path d="M17 28.5L28 31.5M36 31.5L47 28.5" stroke="#f4efe6" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M25 48.5Q32 59 39 48.5Z" fill="#7a1f1f"/><ellipse cx="32" cy="54" rx="4.2" ry="2" fill="#e0605a"/>
+    <path d="M53 27Q59 35 53 43M57.5 22.5Q66 35 57.5 47.5" stroke="#f2a93b" stroke-width="2.6" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="bf-worried" viewBox="0 0 64 64"><use href="#bf-body"/>
+    <circle cx="23" cy="35" r="4.9" fill="#fff"/><circle cx="41" cy="35" r="4.9" fill="#fff"/><circle cx="23" cy="33.6" r="2.3" fill="#15151a"/><circle cx="41" cy="33.6" r="2.3" fill="#15151a"/>
+    <path d="M16.5 30L28 25.5M36 25.5L47.5 30" stroke="#f4efe6" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M26 50.5Q29 47.5 32 50.5Q35 53.5 38 50.5" stroke="#15151a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M49 10Q49 4 54.5 4Q60 4 60 9.5Q60 13.5 54.5 14.5V17.5" stroke="#f2a93b" stroke-width="2.8" fill="none" stroke-linecap="round"/><circle cx="54.5" cy="22.4" r="1.7" fill="#f2a93b"/></symbol>
+  <symbol id="bf-grumpy" viewBox="0 0 64 64"><use href="#bf-body"/>
+    <ellipse cx="23" cy="36" rx="4.4" ry="3.2" fill="#fff"/><ellipse cx="41" cy="36" rx="4.4" ry="3.2" fill="#fff"/><circle cx="23" cy="36.6" r="2" fill="#15151a"/><circle cx="41" cy="36.6" r="2" fill="#15151a"/>
+    <path d="M17 27L28.5 32M35.5 32L47 27" stroke="#f4efe6" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M26 51.5Q32 46.5 38 51.5" stroke="#15151a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M54 3L47 14.5H52.5L48 24L59.5 11H54Z" fill="#f2a93b" stroke="#22232b" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="bf-victory" viewBox="0 0 64 64"><use href="#bf-body"/>
+    <path d="M18.5 37.5Q23 30.5 27.5 37.5M36.5 37.5Q41 30.5 45.5 37.5" stroke="#f4efe6" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M24 46.5Q32 59 40 46.5Z" fill="#7a1f1f"/><ellipse cx="32" cy="53" rx="4.4" ry="2.2" fill="#e0605a"/>
+    <g fill="#f2a93b" stroke="#22232b" stroke-width="1.2" stroke-linejoin="round"><path d="M7 6l1.6 3.4L12 11l-3.4 1.6L7 16l-1.6-3.4L2 11l3.4-1.6Z"/><path d="M57 3l1.3 2.8L61 7l-2.7 1.2L57 11l-1.3-2.8L53 7l2.7-1.2Z"/><path d="M60 26l1.1 2.4 2.4 1.1-2.4 1.1L60 33l-1.1-2.4-2.4-1.1 2.4-1.1Z"/></g></symbol>
+
+  <!-- ===== Icons: same ink outline, duotone fills ===== -->
+  <symbol id="ic-dumbbell" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="4.5" height="10" rx="1.4" fill="#f2a93b"/><rect x="24.5" y="11" width="4.5" height="10" rx="1.4" fill="#f2a93b"/><rect x="8" y="8.5" width="4.5" height="15" rx="1.4" fill="#f4efe6"/><rect x="19.5" y="8.5" width="4.5" height="15" rx="1.4" fill="#f4efe6"/><path d="M12.5 16h7" fill="none"/></g></symbol>
+  <symbol id="ic-receipt" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h18v25l-3-2-3 2-3-2-3 2-3-2-3 2Z" fill="#f4efe6"/><path d="M11.5 10h9M11.5 15h9" fill="none"/><path d="M11.5 20h5" fill="none" stroke="#d4533b"/></g></symbol>
+  <symbol id="ic-chat" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h22a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H15l-6 5v-5H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" fill="#f2a93b"/><path d="M9.5 12.5h13M9.5 17h8" fill="none"/></g></symbol>
+  <symbol id="ic-lock" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="14" width="19" height="14" rx="3" fill="#f2a93b"/><path d="M10.5 14V10a5.5 5.5 0 0 1 11 0v4" fill="none"/><circle cx="16" cy="21" r="1.6" fill="#22232b"/></g></symbol>
+  <symbol id="ic-ff" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.2" stroke-linejoin="round"><path d="M4 7.5l11 8.5L4 24.5Z" fill="#f2a93b"/><path d="M16 7.5l11 8.5-11 8.5Z" fill="#f2a93b"/></g></symbol>
+  <symbol id="ic-play" viewBox="0 0 32 32"><path d="M9 5.5l17 10.5-17 10.5Z" fill="#f2a93b" stroke="#22232b" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="12" fill="#b9e0c2"/><path d="M10.5 16.5l4 4 7.5-8.5" fill="none"/></g></symbol>
+  <symbol id="ic-hand" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15V6.5a2 2 0 0 1 4 0V14m0-1.5V4.5a2 2 0 0 1 4 0V13m0-1.5V6.5a2 2 0 0 1 4 0V19c0 5-3.2 8.5-8 8.5-3.6 0-5.6-2-7.4-5l-3-5.2a2 2 0 0 1 3.4-2Z" fill="#f4efe6"/></g></symbol>
+  <symbol id="ic-mail" viewBox="0 0 32 32"><g stroke="#22232b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="25" height="18" rx="3" fill="#f4efe6"/><path d="M4.5 9l11.5 9 11.5-9" fill="none"/></g></symbol>
+</defs></svg>
+
 <header class="top">
-  <a class="logo" href="/" id="home"><svg viewBox="0 0 64 64" width="38" height="38"><use href="#badger-face"/></svg><span>badger</span></a>
+  <a class="logo" href="/" id="home"><svg viewBox="0 0 64 64" width="40" height="40"><use href="#bf-neutral"/></svg><span>badger</span></a>
   <span class="grow"></span>
+  <a class="btn ghost sm" href="https://github.com/elsisiem/badger" target="_blank" rel="noopener">GitHub</a>
   <span id="who" class="who"></span>
   <button class="btn ghost sm" id="signin">Sign in</button>
   <button class="btn ghost sm" id="logout" hidden>Reset demo</button>
 </header>
-
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <symbol id="badger-face" viewBox="0 0 64 64">
-    <ellipse cx="32" cy="38" rx="25" ry="22" fill="#2b2b33"/>
-    <path d="M32 16 C 22 16 14 24 12 34 C 18 28 25 26 32 26 C 39 26 46 28 52 34 C 50 24 42 16 32 16Z" fill="#f4efe6"/>
-    <ellipse cx="12" cy="20" rx="6" ry="7" fill="#2b2b33"/><ellipse cx="52" cy="20" rx="6" ry="7" fill="#2b2b33"/>
-    <ellipse cx="32" cy="44" rx="13" ry="10" fill="#f4efe6"/>
-    <circle cx="23" cy="36" r="4" fill="#fff"/><circle cx="41" cy="36" r="4" fill="#fff"/>
-    <circle cx="24" cy="36.5" r="2" fill="#111"/><circle cx="40" cy="36.5" r="2" fill="#111"/>
-    <ellipse cx="32" cy="41" rx="4" ry="3" fill="#111"/>
-    <path d="M27 48 Q32 52 37 48" stroke="#111" stroke-width="2" fill="none" stroke-linecap="round"/>
-  </symbol>
-</defs></svg>
 
 <main id="app"></main>
 <footer class="foot">

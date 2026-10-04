@@ -1,10 +1,14 @@
-# 🦡 Badger
+<p align="center"><img src="public/icon-512.png" width="96" alt="Badger"></p>
+
+# Badger
 
 **The agent that nags so you don't have to.**
 
 Someone owes you something: a friend with your $64, a gym that won't cancel, a landlord who ghosts, a teammate who hasn't done their slides. Chasing them is awkward, so you don't, and you lose the money or the time. Badger does the awkward part.
 
-**Live demo:** https://badger-nags.fly.dev (click *Start this one*, or chat with it)
+**Try it now: https://badger-nags.fly.dev** (no sign-up). Click **Watch a 60-second demo** and a whole case plays out on its own, or pick a story and approve each draft yourself.
+
+**Source:** https://github.com/elsisiem/badger
 
 ## What it does
 
@@ -16,7 +20,13 @@ Someone owes you something: a friend with your $64, a gym that won't cancel, a l
 6. **Reads replies.** A promise pushes the clock out. A refusal makes the next nudge firmer. A question for you becomes a task. A "use our web form" reply becomes a step where Badger fills the form in a live cloud browser (**Kernel**) and keeps a screenshot. A "resolved" claim asks *you* to confirm before the case closes.
 7. **Nags you, too.** Leave a draft unapproved and Badger reminds you.
 
-The demo uses a fast-forwarded clock (1 day = 20 s) and fictional counterparties (a roommate and a gym). The email traffic is real AgentMail traffic; only the other side is fictional. Real cases run on a real clock.
+### The demo, in plain terms
+
+1. **Pick a story** (a flaky roommate, or a gym that won't let you cancel). The emails are real AgentMail traffic; the other side is a fictional character who replies in seconds.
+2. **You stay in charge.** Badger writes every message and stops for your OK. Edit, send, or skip.
+3. **Or press Fast-forward.** It skips the waiting and approves for you, so the whole timeline plays out in about a minute. A progress bar shows each step lighting up.
+
+The sandbox clock is 1 day = 20 s. Real cases run on a real clock (days between nudges).
 
 ## How the sponsor tools are used
 
