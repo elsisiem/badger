@@ -45,3 +45,27 @@ main{max-width:1100px;margin:0 auto;padding:10px 24px 80px}
 iframe.live{width:100%;height:340px;border:2px solid var(--ink);border-radius:12px;background:#fff}img.shot{width:100%;border:2px solid var(--ink);border-radius:12px}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--amber);padding:10px 16px;border-radius:10px;font:700 14px "JetBrains Mono",monospace;opacity:0;transition:.2s;pointer-events:none}.toast.on{opacity:1}
 .clock{font:700 12px "JetBrains Mono",monospace;color:var(--teal)}
+
+/* mascot moods */
+.mascot{position:relative}.mascot .mood{position:absolute;right:-8px;top:-8px;font-size:26px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.15))}
+.mood-nagging svg{animation:shake .5s ease-in-out infinite}.mood-victory svg{animation:hop .7s ease-in-out infinite}
+.mood-napping svg{filter:saturate(.7) brightness(.97);animation:breathe 3.6s ease-in-out infinite}.mood-worried svg{animation:wobble 1.4s ease-in-out infinite}.mood-grumpy svg{filter:contrast(1.1) hue-rotate(-10deg)}
+@keyframes shake{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}@keyframes hop{50%{transform:translateY(-12px) scale(1.04)}}@keyframes breathe{50%{transform:scale(1.04)}}@keyframes wobble{50%{transform:rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.mascot svg,.bigbadger{animation:none!important}}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:20}.confetti i{position:absolute;top:-20px;font-style:normal;font-size:26px;animation:fall 2.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+/* footer + dialog */
+.foot{max-width:1100px;margin:30px auto 40px;padding:20px 24px;border-top:2px solid var(--ink);font-size:13px;color:var(--ink2);display:grid;gap:8px}.foot a{color:var(--ink)}
+dialog{border:3px solid var(--ink);border-radius:18px;padding:22px;background:var(--card);box-shadow:6px 6px 0 var(--ink);max-width:420px;width:92vw}dialog::backdrop{background:rgba(34,35,43,.45)}
+dialog input{width:100%;font:16px "DM Sans",sans-serif;border:2px solid var(--ink);border-radius:10px;padding:11px;margin:6px 0 12px;background:#fff}dialog label{font-weight:700;font-size:13px}
+/* chat (assistant-ui) */
+.chat-wrap{background:var(--card);border:2px solid var(--ink);border-radius:18px;box-shadow:5px 5px 0 var(--ink);margin-top:14px;overflow:hidden}
+.chat-start{padding:26px;text-align:center}.chat-start p{color:var(--ink2);margin:0 0 14px}
+.bc-thread{display:flex;flex-direction:column;height:480px}.bc-viewport{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.bc-welcome{margin:auto 0}.bc-hi{font:600 24px Fraunces,serif;margin-bottom:6px}.bc-welcome p{color:var(--ink2);margin:0 0 12px}
+.bc-starters{display:grid;gap:8px}.bc-chip{text-align:left;font:500 14px "DM Sans",sans-serif;border:2px dashed var(--ink2);background:transparent;border-radius:12px;padding:9px 12px;cursor:pointer;color:var(--ink)}.bc-chip:hover{border-style:solid;background:#fff}
+.bc-msg{display:flex;gap:8px;align-items:flex-start}.bc-user{justify-content:flex-end}.bc-avatar{font-size:24px}
+.bc-bubble{max-width:82%;border-radius:14px;padding:9px 13px;border:2px solid var(--ink);background:#fff}.bc-user .bc-bubble{background:#ffe3a3}
+.bc-text{margin:0;white-space:pre-wrap;word-break:break-word;font-size:15px}.bc-tool{font-size:13px;color:var(--ink2);font-style:italic}
+.bc-card{border:2px solid var(--ink);border-radius:12px;padding:10px 12px;background:#e7f2f1;margin:6px 0}.bc-card-t{font-weight:700}.bc-card-b{margin:4px 0 8px;font-size:14px}.bc-card-err{background:#fde8e3}.bc-card-wait{background:#fff6ea}
+.bc-composer{display:flex;gap:10px;padding:12px;border-top:2px solid var(--ink);background:#fbf6ea}.bc-input{flex:1;resize:none;border:2px solid var(--ink);border-radius:10px;padding:10px;font:15px "DM Sans",sans-serif;background:#fff;max-height:110px}

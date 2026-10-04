@@ -36,7 +36,26 @@
   function paintWho() {
     $who.textContent = user ? (user.kind === "demo" ? "demo session" : user.email) : "";
     $logout.hidden = !user;
+    $logout.textContent = user && user.kind === "real" ? "Sign out" : "Reset demo";
+    const si = document.getElementById("signin");
+    si.hidden = !!(user && user.kind === "real");
+    si.onclick = openSignin;
     $logout.onclick = async () => { await api("/api/auth/logout", { method: "POST" }); user = null; location.hash = "#/"; paintWho(); route(); };
+  }
+  function openSignin() {
+    const dlg = document.getElementById("dlg"), form = document.getElementById("dlgform");
+    const name = h("input", { placeholder: "Your first name", autocomplete: "given-name" });
+    const email = h("input", { type: "email", placeholder: "you@example.com", required: true, autocomplete: "email" });
+    const msg = h("p", { style: "font-size:14px;color:var(--ink2);min-height:1.3em" });
+    const go = h("button", { class: "btn", type: "submit" }, "Email me a sign-in link");
+    form.replaceChildren(h("h3", {}, "Sign in to chase real people"), h("p", { style: "font-size:14px;color:var(--ink2)" }, "Badger CCs you on everything it sends, so it needs to know your address is really yours. No password."),
+      h("label", {}, "Name"), name, h("label", {}, "Email"), email, msg, h("div", { class: "row" }, go, h("button", { class: "btn ghost", type: "button", onclick: () => dlg.close() }, "Close")));
+    form.onsubmit = async (e) => {
+      e.preventDefault(); go.disabled = true; msg.textContent = "Sending...";
+      try { await api("/api/auth/request", { method: "POST", body: { email: email.value, name: name.value } }); msg.textContent = "Sent! Check your inbox (and spam) and click the link."; }
+      catch (er) { msg.textContent = er.message; go.disabled = false; }
+    };
+    dlg.showModal();
   }
   function route() {
     clearInterval(timer);
@@ -63,8 +82,21 @@
       h("div", {}, h("b", {}, "3. You approve"), "Nothing goes out until you OK it. Edit anything."),
       h("div", {}, h("b", {}, "4. It waits and reads"), "Replies are understood. Promises are respected. Forms get filled in a live browser."),
     ));
+    const chatWrap = h("div", { class: "chat-wrap" });
+    const startBtn = h("button", { class: "btn" }, "\u{1F4AC} Chat with Badger");
+    chatWrap.append(h("div", { class: "chat-start" }, h("p", {}, "Describe who owes you what, in your own words. Badger asks only what it needs, then opens the case."), startBtn));
+    startBtn.onclick = async () => {
+      startBtn.disabled = true;
+      try {
+        if (!user) { user = (await api("/api/auth/demo", { method: "POST" })).user; paintWho(); }
+        chatWrap.replaceChildren();
+        const mount = () => window.BadgerChat.mount(chatWrap, { onOpened: (id) => setTimeout(() => { location.hash = "#/case/" + id; }, 1400) });
+        if (window.BadgerChat) mount(); else { const sc = document.createElement("script"); sc.src = "/chat/chat.js"; sc.onload = mount; document.body.append(sc); }
+      } catch (e) { toast(e.message); startBtn.disabled = false; }
+    };
+    $app.append(h("h2", { style: "margin-top:30px" }, "Tell Badger who's ignoring you"), chatWrap);
     const cards = h("div", { class: "cards" });
-    $app.append(h("h2", { style: "margin-top:30px" }, "Watch it work (sandbox, fast clock)"), cards);
+    $app.append(h("h2", { style: "margin-top:34px" }, "Or watch it work (sandbox, fast clock)"), cards);
     let sc = { scenarios: [], demoClock: { day_seconds: 12 } };
     try { sc = await api("/api/scenarios"); } catch {}
     for (const s of sc.scenarios) {
@@ -133,10 +165,11 @@
         actionsRow.append(h("button", { class: "btn ghost sm", onclick: async () => { await api("/api/cases/" + id + "/stop", { method: "POST" }); last = ""; draw(); } }, "Stop this case"));
       }
 
+      if (c.status === "resolved" && window.__confetti !== c.id) { window.__confetti = c.id; confetti(); }
       $app.replaceChildren(
         h("a", { href: "#/", style: "font-size:14px" }, "← all cases"),
         h("div", { class: "case-head" },
-          (() => { const w = h("div", { class: "mascot" }); w.append(badge("badger-face", 84)); return w; })(),
+          (() => { const w = h("div", { class: "mascot mood-" + c.mood }); w.append(badge("badger-face", 84), h("span", { class: "mood" }, mood[0])); return w; })(),
           h("div", {}, h("h2", {}, c.title), h("div", { style: "margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center" }, h("span", { class: "pill s-" + c.status }, STATUS[c.status] || c.status), h("span", { class: "pill" }, mood[0] + " " + mood[1]), h("span", { style: "color:var(--ink2);font-size:14px" }, "chasing " + c.counterparty_name + " · " + c.emails_sent + " sent"))),
           h("span", { class: "grow" }), actionsRow),
         h("div", { class: "grid" }, left, right),
@@ -177,6 +210,14 @@
       }
       return wrap;
     }
+  }
+
+  function confetti() {
+    const box = h("div", { class: "confetti" });
+    const bits = ["\u{1F389}", "\u2728", "\u{1F9A1}", "\u{1F4B8}", "\u2705"];
+    for (let i = 0; i < 36; i++) box.append(h("i", { style: "left:" + Math.random() * 100 + "%;animation-delay:" + Math.random() * 0.8 + "s" }, bits[i % 5]));
+    document.body.append(box);
+    setTimeout(() => box.remove(), 4200);
   }
 
   boot();

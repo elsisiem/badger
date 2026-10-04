@@ -13,6 +13,7 @@
   <a class="logo" href="/" id="home"><svg viewBox="0 0 64 64" width="38" height="38"><use href="#badger-face"/></svg><span>badger</span></a>
   <span class="grow"></span>
   <span id="who" class="who"></span>
+  <button class="btn ghost sm" id="signin">Sign in</button>
   <button class="btn ghost sm" id="logout" hidden>Reset demo</button>
 </header>
 
@@ -30,6 +31,11 @@
 </defs></svg>
 
 <main id="app"></main>
+<footer class="foot">
+  <div><b>Badger</b> never sends anything you haven't approved, always says it's an AI assistant, and stops the moment someone says STOP.</div>
+  <div>Built with <a href="https://mastra.ai" rel="noopener">Mastra</a> (agents + durable workflows) &middot; <a href="https://agentmail.to" rel="noopener">AgentMail</a> (its own inbox) &middot; <a href="https://exa.ai" rel="noopener">Exa</a> (sourced rules) &middot; <a href="https://kernel.sh" rel="noopener">Kernel</a> (live browser) &middot; <a href="https://neon.com" rel="noopener">Neon</a> &middot; <a href="https://assistant-ui.com" rel="noopener">assistant-ui</a> &middot; <a href="https://fly.io" rel="noopener">Fly.io</a> &middot; <a href="https://github.com/elsisiem/badger" rel="noopener">source</a></div>
+</footer>
+<dialog id="dlg"><form method="dialog" id="dlgform"></form></dialog>
 <div class="toast" id="toast" role="status"></div>
 <script src="/app.js"></script>
 </body>

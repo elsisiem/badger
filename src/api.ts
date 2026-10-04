@@ -43,7 +43,7 @@ api.get("/auth/verify", async (c) => {
 });
 
 api.post("/api/auth/demo", async (c) => {
-  if (await overLimit(`demo:${ip(c)}`, 20, 3600_000)) return c.json({ error: "Too many demo sessions from your network. Try again later." }, 429);
+  if (await overLimit(`demo:${ip(c)}`, 120, 3600_000)) return c.json({ error: "Too many demo sessions from your network. Try again later." }, 429);
   const existing = c.get("user");
   if (existing) return c.json({ user: publicUser(existing) });
   const u = await createDemoUser();

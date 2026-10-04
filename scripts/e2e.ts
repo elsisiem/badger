@@ -1,3 +1,4 @@
+export {};
 // Plays a user against a running Badger: BASE=http://localhost:8080 npx tsx scripts/e2e.ts [roommate|gym]
 // It uses the sandbox cast, so every email is real AgentMail traffic but only between Badger and its own inboxes.
 const BASE = (process.env.BASE || "http://localhost:8080").replace(/\/$/, "");
