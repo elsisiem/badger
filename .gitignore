@@ -1,0 +1,11 @@
+.env
+.env.*
+node_modules
+dist
+.fly
+*.log
+.docs
+.skill-exa.txt
+.agents
+.claude
+skills-lock.json
