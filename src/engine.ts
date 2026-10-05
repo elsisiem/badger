@@ -117,6 +117,7 @@ export async function runNextStep(caseId: string) {
 }
 
 let ticking = false;
+let lastSweep = 0;
 export async function tick() {
   if (ticking) return;
   ticking = true;
@@ -128,6 +129,12 @@ export async function tick() {
        RETURNING id`,
     );
     for (const { id } of due) void runNextStep(id);
+
+    // Rosters: once a minute, open cases for anyone who has become overdue.
+    if (Date.now() - lastSweep > 60_000) {
+      lastSweep = Date.now();
+      await import("./groups").then((m) => m.sweep()).catch((e) => console.error("[sweep]", e.message));
+    }
 
     // Fast-forward (sandbox cases only): skip the waiting, and let Badger approve its own drafts so the story plays out.
     await q(`UPDATE cases SET next_due_at = now() WHERE autoplay AND scenario IS NOT NULL AND status = 'waiting' AND next_due_at > now()`);
@@ -230,6 +237,7 @@ export async function resolveCase(caseId: string, why: string) {
   await patchCase(caseId, { plan, status: "resolved", mood: "victory", resolved_at: new Date().toISOString(), next_due_at: null, working_since: null });
   await q("UPDATE actions SET status = 'expired', decided_at = now() WHERE case_id = $1 AND status = 'pending'", [caseId]);
   await addEvent(caseId, "resolved", "Resolved", why);
+  if (c.member_id) await import("./groups").then((m) => m.settleFromCase(c)).catch((e) => console.error("[settle]", e.message));
   const user = await getUser(c.user_id);
   if (user) await notifyUser(user, c, `Resolved: "${c.title}"`, `${why} Nicely done, and Badger did the awkward part.`);
 }
@@ -245,6 +253,11 @@ export async function stopCase(caseId: string, why: string, by: "user" | "them" 
   await patchCase(caseId, { plan, status: "stopped", mood: "napping", next_due_at: null, working_since: null });
   await q("UPDATE actions SET status = 'expired', decided_at = now() WHERE case_id = $1 AND status = 'pending'", [caseId]);
   await addEvent(caseId, "stopped", by === "user" ? "You stopped this case" : "Stopped", why);
+  if (c.member_id && by === "user") {
+    // Stopping a roster case means "leave this person alone": pause their reminders until the owner turns them back on.
+    await q("UPDATE members SET reminders_paused = true WHERE id = $1", [c.member_id]);
+    await addEvent(caseId, "paused", "Reminders paused for this person", "Badger will not open a new case for them until you resume reminders on the roster.");
+  }
 }
 
 /* ----------------------------------------------------------------------------------------------

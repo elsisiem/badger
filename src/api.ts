@@ -9,7 +9,7 @@ import { createCase, handleInbound, resolveCase, stopCase, submitDecision } from
 import { env } from "./env";
 import { getMastra } from "./registry";
 import { readActionToken } from "./notify";
-import { gymContactPage, gymFormSubmitted, gymPolicyPage, gymThanksPage, listScenarios, SCENARIOS } from "./sim";
+import { gymContactPage, gymFormSubmitted, gymPolicyPage, gymThanksPage, listScenarios, scenarioForInbox, SCENARIOS } from "./sim";
 import { addEvent, getAction, getCase, getUser, patchCase, publicCase, type ActionRow } from "./store";
 import type { CaseRow, UserRow } from "./types";
 
@@ -87,7 +87,7 @@ api.get("/api/cases", requireUser, async (c) => {
 api.post("/api/cases", requireUser, async (c) => {
   const u = c.get("user")!;
   const b = await c.req.json().catch(() => ({}));
-  const sandbox = Object.values(SCENARIOS).find((s) => s.inbox.toLowerCase() === String(b.counterparty_email ?? "").trim().toLowerCase());
+  const sandbox = scenarioForInbox(String(b.counterparty_email ?? ""));
   const res = await createCase(u, {
     title: String(b.title ?? ""),
     counterparty_name: String(b.counterparty_name ?? ""),
@@ -98,7 +98,7 @@ api.post("/api/cases", requireUser, async (c) => {
     currency: b.currency ? String(b.currency) : "USD",
     context: String(b.context ?? ""),
     tone: b.tone === "firm" || b.tone === "badger" ? b.tone : "polite",
-    scenario: u.kind === "demo" && sandbox ? sandbox.key : null,
+    scenario: u.kind === "demo" ? sandbox : null,
   });
   return res.ok ? c.json({ case: publicCase(res.case) }, 201) : c.json({ error: res.error }, 400);
 });

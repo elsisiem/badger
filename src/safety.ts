@@ -47,7 +47,8 @@ export async function consumeSendBudget(c: CaseRow, user: Pick<UserRow, "id" | "
   if (!env.sendingEnabled) return no("Sending is switched off right now (kill switch). Nothing was sent.");
   if (c.emails_sent >= PER_CASE_CAP[c.counterparty_type]) return no(`Badger sends at most ${PER_CASE_CAP[c.counterparty_type]} emails per case to ${c.counterparty_type === "person" ? "a person" : "an organization"}. Time to try a different route.`);
   if (c.scenario) return { ok: true };
-  if (await overLimit(`send:user:${user.id}`, 12, 24 * 3600_000)) return no("Daily send limit reached (12 emails per day). Badger will pick this up tomorrow.");
+  const dailyCap = c.group_id ? 40 : 12; // a roster of students legitimately needs more than a one-off dispute
+  if (await overLimit(`send:user:${user.id}`, dailyCap, 24 * 3600_000)) return no(`Daily send limit reached (${dailyCap} emails per day). Badger will pick this up tomorrow.`);
   if (await overLimit(`send:rcpt:${to}`, 2, 24 * 3600_000)) return no(`Badger already emailed ${to} twice in the last day, and will not pile on.`);
   if (await overLimit("send:global", 400, 3600_000)) return no("Badger is rate limited right now. Try again in a bit.");
   return { ok: true };

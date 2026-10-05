@@ -22,7 +22,18 @@ export const env = {
     gym: opt("SIM_GYM_INBOX", "sunnyside-gym@agentmail.to"),
     roommate: opt("SIM_ROOMMATE_INBOX", "alex-roommate@agentmail.to"),
     landlord: opt("SIM_LANDLORD_INBOX", "oakview-property@agentmail.to"),
+    parentLee: opt("SIM_PARENT_LEE_INBOX", "piano-parent-lee@agentmail.to"),
+    parentOrtiz: opt("SIM_PARENT_ORTIZ_INBOX", "piano-parent-ortiz@agentmail.to"),
   },
+  /** Chat apps. Each one switches on only when its credentials are present. */
+  telegramToken: opt("TELEGRAM_BOT_TOKEN"),
+  telegramApi: opt("TELEGRAM_API_BASE", "https://api.telegram.org"), // overridable so tests can point at a mock
+  telegramSecret: opt("TELEGRAM_WEBHOOK_SECRET", opt("SESSION_SECRET").slice(0, 32)),
+  slackBotToken: opt("SLACK_BOT_TOKEN"),
+  slackSigningSecret: opt("SLACK_SIGNING_SECRET"),
+  twilioSid: opt("TWILIO_ACCOUNT_SID"),
+  twilioToken: opt("TWILIO_AUTH_TOKEN"),
+  twilioWhatsappFrom: opt("TWILIO_WHATSAPP_FROM"), // e.g. whatsapp:+14155238886 (Twilio sandbox)
   /** Global kill switch: when "false" Badger drafts and plans but sends nothing. */
   sendingEnabled: opt("SENDING_ENABLED", "true") !== "false",
   /** Fast-forward for sandbox demos: one "day" lasts 24h / this. */

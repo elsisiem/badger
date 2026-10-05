@@ -4,6 +4,8 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { api } from "./api";
+import { rosterApi } from "./rosterApi";
+import { setupChannels } from "./channels";
 import { pool } from "./db";
 import { reconcile, tick } from "./engine";
 import { env } from "./env";
@@ -23,6 +25,7 @@ app.use("*", async (c, next) => {
 });
 
 app.route("/", api);
+app.route("/", rosterApi);
 
 // The built React app. Anything that is not an API or sandbox route falls back to index.html (client-side routing).
 const webRoot = existsSync(join(process.cwd(), "dist", "web")) ? join(process.cwd(), "dist", "web") : join(process.cwd(), "public");
@@ -55,6 +58,8 @@ async function main() {
       console.error("[webhook] could not register:", (e as Error).message);
     }
   }
+
+  await setupChannels();
 
   const inboxes = [env.agentmailInbox, ...Object.values(env.simInboxes)];
   setInterval(() => void tick(), 4000);

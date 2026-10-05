@@ -66,6 +66,16 @@ export const SCENARIOS: Record<string, Scenario> = {
   },
 };
 
+/** The two sandbox "parents" used by the teacher demo. Not listed as stand-alone scenarios; the roster demo drives them. */
+const PARENT_INBOXES = new Set([env.simInboxes.parentLee.toLowerCase(), env.simInboxes.parentOrtiz.toLowerCase()]);
+
+/** Which sandbox script answers mail sent to this inbox, if any. */
+export function scenarioForInbox(email: string): string | null {
+  const e = email.trim().toLowerCase();
+  if (PARENT_INBOXES.has(e)) return "parent";
+  return Object.values(SCENARIOS).find((s) => s.inbox.toLowerCase() === e)?.key ?? null;
+}
+
 /** Sourced facts for sandbox companies: stand-ins for what Exa finds on a real company's policy page. */
 export function simPolicies(key: string): Research["policies"] {
   if (key !== "gym") return [];
@@ -105,6 +115,16 @@ const SCRIPT: Record<string, (stage: number, c: CaseRow) => { directive: string;
       fallback: `You're right, and I'm sorry for the trouble. Your membership is cancelled effective August 12 and the two charges ($89.98 total) have been refunded to your card on file. Confirmation number: SF-REFUND-7731.\n\nPat, Member Care`,
     };
   },
+  parent: (stage, c) =>
+    stage <= 1
+      ? {
+          directive: `You are ${c.counterparty_name}, a friendly, busy parent whose child takes piano lessons. You forgot to pay the teacher. Apologise warmly, say you'll send the bank transfer this evening. Short, polite, no emoji.`,
+          fallback: `Oh no, I'm so sorry, that completely slipped my mind. I'll send the transfer this evening. Thank you for your patience!`,
+        }
+      : {
+          directive: `You are ${c.counterparty_name}, a parent. You have just paid the piano teacher in full by bank transfer. Say so briefly and thank them. Short, warm, no emoji.`,
+          fallback: `All sorted! I've just sent the full amount by bank transfer. Thank you for reminding me, and for everything you do for the kids.`,
+        },
   roommate: (stage) =>
     stage <= 1
       ? {

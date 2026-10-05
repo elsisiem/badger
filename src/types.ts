@@ -68,6 +68,8 @@ export interface CaseRow {
   emails_sent: number;
   working_since: string | null;
   autoplay: boolean;
+  group_id: string | null;
+  member_id: string | null;
   created_at: string;
   updated_at: string;
   resolved_at: string | null;

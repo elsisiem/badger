@@ -72,11 +72,18 @@
   }
   function route() {
     clean();
-    const m = /^#\/case\/([0-9a-f-]{36})$/.exec(location.hash);
+    const hash = location.hash;
+    document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === (hash.startsWith("#/group") ? "#/groups" : hash.startsWith("#/apps") ? "#/apps" : hash.startsWith("#/case") ? "" : "#/")));
+    const m = /^#\/case\/([0-9a-f-]{36})$/.exec(hash);
     if (m) return caseView(m[1]);
+    const g = /^#\/group\/([0-9a-f-]{36})$/.exec(hash);
+    if (g) return groupPage(g[1]);
     window.scrollTo(0, 0);
+    if (hash === "#/groups") return groupsPage();
+    if (hash === "#/apps") return appsPage();
     landing();
   }
+  const money = (c, cur = "USD") => (cur === "USD" ? "$" : cur + " ") + (c / 100).toFixed(2);
   async function ensureUser() {
     if (!user) { user = (await api("/api/auth/demo", { method: "POST" })).user; paintWho(); }
   }
@@ -142,6 +149,14 @@
         h("div", { class: "row" }, step, fast)));
     }
     $app.append(h("p", { class: "fine mono" }, "Sandbox clock: 1 day = " + sc.demoClock.day_seconds + " seconds. Real cases run on a real clock: days between nudges."));
+
+    // Rosters: the teacher / coach / landlord use case
+    const tdemo = h("button", { class: "btn" }, ico("users", 20), "Try the teacher demo");
+    tdemo.onclick = () => startTeacherDemo(tdemo);
+    $app.append(h("section", {},
+      h("div", { class: "kicker" }, "for people who bill people"), h("h2", {}, "Teach students? Run a club? Rent a room?"),
+      h("p", { class: "lead", style: "margin-top:10px" }, "Make a group, log what each person owes, and Badger handles every reminder. Text it \"Sam had a lesson today, $45\" from Telegram, Slack or WhatsApp. It keeps one running balance per person, reminds them kindly, and stops when you mark them paid."),
+      h("div", { class: "row" }, tdemo, h("a", { class: "btn ghost", href: "#/apps" }, ico("chat", 18), "Chat apps"), h("a", { class: "btn ghost", href: "#/groups" }, "Rosters"))));
 
     // How it works under the hood
     $app.append(h("section", {},
@@ -288,6 +303,221 @@
       }
       return wrap;
     }
+  }
+
+
+  /* ------------------------------ rosters ------------------------------ */
+  const INTRO_ROSTER = h("div", { class: "coach" }, ico("users", 40), h("div", {},
+    h("b", {}, "For anyone who owes you regularly."), h("span", {}, " Piano students, tenants, club dues, a team that never submits timesheets. Log what each person owes (\"Sam, lesson, $45\"). Badger reminds them kindly on a schedule, keeps one running balance per person, and stops the moment you mark them paid. You never have to text anyone.")));
+
+  async function startTeacherDemo(btn) {
+    const label = btn && btn.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = "Setting up..."; }
+    try {
+      await ensureUser();
+      const r = await api("/api/demo/teacher", { method: "POST" });
+      location.hash = "#/group/" + r.group.id;
+    } catch (e) { toast(e.message); if (btn) { btn.disabled = false; btn.textContent = label; } }
+  }
+
+  async function groupsPage() {
+    $app.replaceChildren(h("a", { href: "#/", class: "back" }, "← home"), h("h2", { style: "margin-top:10px" }, "Rosters"), INTRO_ROSTER.cloneNode(true));
+    const demo = h("button", { class: "btn" }, ico("play", 20), "Try the teacher demo");
+    demo.onclick = () => startTeacherDemo(demo);
+    if (!user) { $app.append(h("div", { class: "row" }, demo), h("p", { class: "fine" }, "A sandbox teacher with two students whose parents are fictional characters. It plays out in about a minute.")); return; }
+    let groups = [];
+    try { groups = (await api("/api/groups")).groups; } catch (e) { toast(e.message); }
+    const list = h("div", { class: "cards" });
+    for (const g of groups) {
+      list.append(h("a", { class: "scn link", href: "#/group/" + g.id },
+        h("div", { class: "scn-ico" }, ico("users", 40)), h("h3", {}, g.name),
+        h("div", {}, h("span", { class: "tag " + (g.owed_cents ? "amber" : "green") }, g.owed_cents ? money(g.owed_cents, g.currency) + " owed" : "all paid up"), " ", h("span", { class: "fine" }, g.members.length + " people" + (g.auto_send ? " · auto-reminders on" : ""))),
+        h("p", {}, g.members.slice(0, 5).map((m) => m.name).join(", ") || "No one added yet")));
+    }
+    $app.append(list);
+    if (!groups.length) $app.append(h("div", { class: "row" }, demo));
+    $app.append(newGroupForm());
+  }
+
+  function newGroupForm() {
+    const f = (name, label, attrs = {}, tag = "input") => h("label", {}, label, h(tag, { name, ...attrs }));
+    const consent = h("input", { type: "checkbox", name: "consent" });
+    const form = h("form", { class: "form box", style: "margin-top:24px" },
+      h("h3", {}, "Start a new group"),
+      h("div", { class: "two" }, f("name", "Group name", { placeholder: "Piano students", required: true }), f("default_amount", "Usual price per item ($)", { type: "number", step: "0.01", min: "0", placeholder: "40" })),
+      f("payment_note", "How do people pay you?", { placeholder: "Venmo @sam, bank transfer, or cash at the next lesson" }),
+      h("div", { class: "two" }, f("grace_days", "Wait this many days before the first reminder", { type: "number", min: "0", max: "30", value: "3" }), f("repeat_days", "Days between reminders", { type: "number", min: "1", max: "30", value: "7" })),
+      f("roster", "People (optional, one per line: name, email)", { placeholder: "Mia Lee, mrs.lee@example.com\nLeo Ortiz, ortiz.family@example.com" }, "textarea"),
+      h("label", { class: "check" }, consent, h("span", {}, "The people in this group expect payment reminders from me. If any are under 18, I used a parent's email. (Badger only contacts people you vouch for, always says it's an AI assistant, and stops if anyone asks.)")),
+      h("div", { class: "row" }, h("button", { class: "btn", type: "submit" }, "Create group")));
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(form).entries());
+      try {
+        await ensureUser();
+        const r = await api("/api/groups", { method: "POST", body: { ...d, consent: consent.checked, default_amount: d.default_amount || null } });
+        location.hash = "#/group/" + r.group.id;
+      } catch (er) { toast(er.message); }
+    };
+    return form;
+  }
+
+  async function groupPage(id) {
+    $app.replaceChildren(h("p", { class: "fine" }, "Loading..."));
+    let data;
+    try { data = await api("/api/groups/" + id); } catch (e) { $app.replaceChildren(h("p", {}, e.message), h("a", { href: "#/groups" }, "Back")); return; }
+    const g0 = data.group;
+    const isDemo = data.members.some((m) => (m.email || "").startsWith("piano-parent-"));
+
+    const titleEl = h("h2", {});
+    const totalEl = h("span", { class: "tag" });
+    const coachEl = h("div", {});
+    const tableWrap = h("div", { class: "tblwrap" });
+    const chargesEl = h("div", {});
+    const picks = h("div", { class: "chk" });
+    let pickIds = "";
+
+    // --- log a charge (built once so typing is never interrupted) ---
+    const desc = h("input", { value: "Lesson", placeholder: "Lesson" });
+    const amt = h("input", { type: "number", step: "0.01", min: "0", placeholder: g0.default_amount_cents ? (g0.default_amount_cents / 100).toFixed(2) : "amount" });
+    const date = h("input", { type: "date", value: new Date().toISOString().slice(0, 10) });
+    const logBtn = h("button", { class: "btn", type: "submit" }, ico("coin", 18), "Log it");
+    const logForm = h("form", { class: "form" },
+      h("p", { class: "fine" }, "Who had one? Tick everyone it applies to."), picks,
+      h("div", { class: "two" }, h("label", {}, "What was it", desc), h("label", {}, "Amount ($)", amt)),
+      h("label", {}, "Date", date), h("div", { class: "row" }, logBtn));
+    logForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const ids = [...picks.querySelectorAll("input:checked")].map((i) => i.value);
+      if (!ids.length) return toast("Tick at least one person.");
+      logBtn.disabled = true;
+      try { await api("/api/groups/" + id + "/charges", { method: "POST", body: { member_ids: ids, description: desc.value, amount: amt.value || null, date: date.value } }); toast("Logged for " + ids.length + (ids.length === 1 ? " person." : " people.")); picks.querySelectorAll("input").forEach((i) => (i.checked = false)); await refresh(); }
+      catch (er) { toast(er.message); }
+      logBtn.disabled = false;
+    };
+
+    // --- settings ---
+    const sNote = h("input", { value: g0.payment_note || "" });
+    const sGrace = h("input", { type: "number", min: "0", max: "30", value: g0.grace_days });
+    const sRepeat = h("input", { type: "number", min: "1", max: "30", value: g0.repeat_days });
+    const sMax = h("input", { type: "number", min: "1", max: "4", value: g0.max_reminders });
+    const sTone = h("select", {}, ["polite", "firm", "badger"].map((t) => h("option", { value: t, selected: t === g0.tone }, t === "badger" ? "persistent (a bit cheeky)" : t)));
+    const sAuto = h("input", { type: "checkbox" }); sAuto.checked = !!g0.auto_send;
+    const sSave = h("button", { class: "btn ghost", type: "submit" }, "Save settings");
+    const settings = h("form", { class: "form" },
+      h("label", {}, "How people pay", sNote),
+      h("div", { class: "two" }, h("label", {}, "Days before the first reminder", sGrace), h("label", {}, "Days between reminders", sRepeat)),
+      h("div", { class: "two" }, h("label", {}, "Max reminders per person", sMax), h("label", {}, "Tone", sTone)),
+      h("label", { class: "toggle" }, sAuto, h("span", {}, h("b", {}, "Send gentle reminders without asking me each time."), h("br", {}), h("span", { class: "fine" }, "A standing OK for this group's routine reminders. Anything firmer, and any change of channel, still asks you first. Off means every reminder waits for your tap."))),
+      h("div", { class: "row" }, sSave));
+    settings.onsubmit = async (e) => {
+      e.preventDefault();
+      try { await api("/api/groups/" + id, { method: "PATCH", body: { payment_note: sNote.value, grace_days: +sGrace.value, repeat_days: +sRepeat.value, max_reminders: +sMax.value, tone: sTone.value, auto_send: sAuto.checked } }); toast("Saved."); }
+      catch (er) { toast(er.message); }
+    };
+
+    // --- add people ---
+    const addTxt = h("textarea", { placeholder: "Mia Lee, mrs.lee@example.com\nLeo Ortiz, ortiz.family@example.com" });
+    const addForm = h("form", { class: "form" }, h("p", { class: "fine" }, "One per line. For students under 18, use a parent's email so the reminder reaches the person who pays."), addTxt, h("div", { class: "row" }, h("button", { class: "btn ghost", type: "submit" }, "Add people")));
+    addForm.onsubmit = async (e) => {
+      e.preventDefault();
+      try { const r = await api("/api/groups/" + id + "/members", { method: "POST", body: { text: addTxt.value } }); addTxt.value = ""; toast("Added " + r.added + (r.skipped.length ? ". Skipped: " + r.skipped.join("; ") : ".")); await refresh(); }
+      catch (er) { toast(er.message); }
+    };
+
+    const ffBtn = h("button", { class: "btn" }, ico("ff", 18), "Fast-forward the reminders");
+    ffBtn.onclick = async () => { ffBtn.disabled = true; try { await api("/api/groups/" + id + "/fast-forward", { method: "POST" }); toast("Fast-forwarding."); } catch (e) { toast(e.message); } setTimeout(() => (ffBtn.disabled = false), 4000); };
+
+    $app.replaceChildren(
+      h("a", { href: "#/groups", class: "back" }, "← all rosters"),
+      h("div", { class: "case-head" }, h("div", { class: "scn-ico" }, ico("users", 44)), h("div", {}, titleEl, h("div", { class: "pills" }, totalEl)), h("span", { class: "grow" }), isDemo ? ffBtn : null),
+      coachEl,
+      h("div", { class: "box" }, h("h3", {}, "Who owes what"), tableWrap),
+      h("div", { class: "grid" },
+        h("div", {}, h("div", { class: "box" }, h("h3", {}, "Log a lesson or charge"), logForm), h("div", { class: "box" }, h("h3", {}, "Recent activity"), chargesEl)),
+        h("div", {}, h("div", { class: "box" }, h("h3", {}, "Reminder settings"), settings), h("div", { class: "box" }, h("h3", {}, "Add people"), addForm))));
+
+    async function refresh() {
+      let d;
+      try { d = await api("/api/groups/" + id); } catch { return; }
+      const g = d.group;
+      titleEl.textContent = g.name;
+      totalEl.className = "tag " + (d.owed_cents ? "amber" : "green");
+      totalEl.textContent = d.owed_cents ? money(d.owed_cents, g.currency) + " outstanding" : "everyone is paid up";
+      coachEl.replaceChildren(isDemo ? h("div", { class: "coach" }, face(d.owed_cents ? "nagging" : "victory", 44), h("div", {}, h("b", {}, d.owed_cents ? "Badger is on it." : "All clear."), h("span", {}, d.owed_cents ? " Each parent below has an overdue balance, so Badger opened a case and is sending gentle reminders (this roster has auto-reminders on). Open a person's case to watch, or press Fast-forward." : " Every parent paid and Badger stopped. That's the whole loop: you logged the lessons, Badger did the asking."), h("span", { class: "fine" }, " Sandbox: the parents are fictional characters; the emails are real.")))
+        : g.consent_at && !d.members.length ? h("div", { class: "coach" }, face("neutral", 44), h("div", {}, h("b", {}, "Next: add your people."), h("span", {}, " Use the box on the right, one per line.")))
+        : d.members.some((m) => !m.email) ? h("div", { class: "coach" }, face("worried", 44), h("div", {}, h("b", {}, "Some people have no email yet."), h("span", {}, " Badger can't remind them until you add one (use a parent's email for under-18s).")))
+        : null);
+
+      const rows = d.members.map((m) => {
+        let status;
+        if (m.reminders_paused) status = h("span", { class: "tag grey" }, "reminders paused");
+        else if (m.case_id) status = h("a", { href: "#/case/" + m.case_id, class: "tag amber", style: "text-decoration:none" }, "Badger is on it · " + (m.reminders_sent || 0) + " sent");
+        else if (m.owed_cents && !m.email) status = h("span", { class: "tag grey" }, "needs an email");
+        else if (m.owed_cents) status = h("span", { class: "tag" }, "not overdue yet");
+        else status = h("span", { class: "tag green" }, "paid up");
+        const acts = h("div", { class: "row", style: "margin:0" });
+        if (m.owed_cents) {
+          acts.append(h("button", { class: "btn sm green", onclick: async () => { try { await api("/api/members/" + m.id + "/paid", { method: "POST", body: {} }); toast(m.name + " marked paid."); refresh(); } catch (e) { toast(e.message); } } }, "Paid in full"));
+          acts.append(h("button", { class: "linkbtn", onclick: async () => { const v = prompt("How much did " + m.name + " pay? (e.g. 20)"); if (!v) return; try { const r = await api("/api/members/" + m.id + "/paid", { method: "POST", body: { amount: v } }); toast("Recorded. " + (r.remaining_cents ? "Still owes " + money(r.remaining_cents, g.currency) : "All paid up.")); refresh(); } catch (e) { toast(e.message); } } }, "part payment"));
+        }
+        acts.append(h("button", { class: "linkbtn", onclick: async () => { try { await api("/api/members/" + m.id, { method: "PATCH", body: { reminders_paused: !m.reminders_paused } }); refresh(); } catch (e) { toast(e.message); } } }, m.reminders_paused ? "resume reminders" : "pause reminders"));
+        return h("tr", {}, h("td", {}, h("b", {}, m.name), m.payer_name ? h("div", { class: "fine", style: "margin:0" }, "pays: " + m.payer_name) : null, h("div", { class: "fine", style: "margin:0" }, m.email || "no email")),
+          h("td", { class: "num " + (m.owed_cents ? "owed" : "clear") }, m.owed_cents ? money(m.owed_cents, g.currency) : "—"), h("td", {}, status), h("td", {}, acts));
+      });
+      tableWrap.replaceChildren(d.members.length ? h("table", { class: "tbl" }, h("thead", {}, h("tr", {}, h("th", {}, "Person"), h("th", { class: "num" }, "Owes"), h("th", {}, "Badger"), h("th", {}, ""))), h("tbody", {}, rows)) : h("p", { class: "fine" }, "No one yet."));
+
+      const key = d.members.map((m) => m.id).join();
+      if (key !== pickIds) {
+        const checked = new Set([...picks.querySelectorAll("input:checked")].map((i) => i.value));
+        picks.replaceChildren(...d.members.map((m) => h("label", {}, h("input", { type: "checkbox", value: m.id, checked: checked.has(m.id) }), m.name)));
+        pickIds = key;
+      }
+      chargesEl.replaceChildren(...(d.charges.length ? d.charges.slice(0, 12).map((c) => h("div", { class: "ev" }, h("span", { class: "dot", style: c.status === "paid" ? "background:var(--green)" : "background:var(--red)" }), h("div", {}, h("div", { class: "t" }, c.member_name + " · " + c.description + " · " + money(c.amount_cents, g.currency)), h("div", { class: "b" }, String(c.incurred_on).slice(0, 10) + " · " + c.status + (c.status === "owed" ? "" : ""))))) : [h("p", { class: "fine" }, "Nothing logged yet.")]));
+    }
+    await refresh();
+    timer = setInterval(refresh, 2500);
+  }
+
+  /* ------------------------------ chat apps ------------------------------ */
+  const APPS = {
+    telegram: { name: "Telegram", blurb: "Message Badger like a friend. Approve drafts with one tap on inline buttons.", setup: "Create a bot with @BotFather, then set TELEGRAM_BOT_TOKEN on the server." },
+    slack: { name: "Slack", blurb: "DM the Badger app in your workspace. Great for teams and clubs.", setup: "Create the Slack app from the manifest in the repo, then set SLACK_BOT_TOKEN and SLACK_SIGNING_SECRET." },
+    whatsapp: { name: "WhatsApp", blurb: "Text Badger on WhatsApp (via Twilio).", setup: "Set up the Twilio WhatsApp sandbox, then set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_WHATSAPP_FROM." },
+  };
+  async function appsPage() {
+    $app.replaceChildren(h("a", { href: "#/", class: "back" }, "← home"), h("h2", { style: "margin-top:10px" }, "Text Badger from your chat apps"),
+      h("p", { class: "lead", style: "margin-top:8px" }, "Log a lesson, check who owes you, or approve a draft without opening this site. Badger also messages you when it needs a decision."),
+      h("div", { class: "box" }, h("h3", {}, "Things you can say"), ...["Sam had a lesson today, $45", "Lee paid", "who owes me?", "Add Priya, priya@example.com to Piano students", "APPROVE  (or SKIP)  when Badger asks"].map((t) => h("div", { class: "example" }, t))));
+    let info;
+    try { await ensureUser(); info = await api("/api/channels"); } catch (e) { $app.append(h("p", {}, e.message)); return; }
+    const grid = h("div", { class: "apps" });
+    for (const c of info.channels) {
+      const meta = APPS[c.channel];
+      const card = h("div", { class: "app" }, h("div", { class: "row", style: "margin:0" }, ico("chat", 30), h("h3", {}, meta.name), c.linked.length ? h("span", { class: "tag green" }, "connected") : c.available ? h("span", { class: "tag" }, "ready") : h("span", { class: "tag grey" }, "not set up")), h("p", { class: "fine", style: "margin:0" }, meta.blurb));
+      const out = h("div", {});
+      if (c.linked.length) {
+        out.append(h("p", { class: "fine" }, "Linked as " + c.linked.map((l) => l.label || "this chat").join(", ") + "."), h("button", { class: "btn ghost sm", onclick: async () => { await api("/api/channels/" + c.channel, { method: "DELETE" }); appsPage(); } }, "Disconnect"));
+      } else if (c.available) {
+        const btn = h("button", { class: "btn" }, ico("plug", 18), "Connect " + meta.name);
+        btn.onclick = async () => {
+          btn.disabled = true;
+          try {
+            const r = await api("/api/channels/" + c.channel + "/link-code", { method: "POST" });
+            out.replaceChildren(h("div", { class: "codebox" }, r.code), h("p", { class: "fine" }, r.instructions + ". The code works for " + r.expires_in_minutes + " minutes."), r.deep_link ? h("a", { class: "btn", href: r.deep_link, target: "_blank", rel: "noopener" }, "Open Telegram") : null,
+              h("p", { class: "fine" }, "Then come back here; this page updates when you're connected."));
+            const poll = setInterval(async () => { try { const i2 = await api("/api/channels"); if (i2.channels.find((x) => x.channel === c.channel).linked.length) { clearInterval(poll); appsPage(); } } catch {} }, 2500);
+            timer = poll;
+          } catch (e) { toast(e.message); btn.disabled = false; }
+        };
+        out.append(btn);
+      } else {
+        out.append(h("p", { class: "fine" }, "Not switched on for this server yet. ", meta.setup, " Full steps: "), h("a", { href: "https://github.com/elsisiem/badger/blob/main/docs/CHANNELS.md", target: "_blank", rel: "noopener", class: "fine" }, "docs/CHANNELS.md"));
+      }
+      card.append(out);
+      grid.append(card);
+    }
+    $app.append(grid);
   }
 
   function confetti() {

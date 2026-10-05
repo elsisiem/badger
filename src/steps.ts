@@ -4,6 +4,7 @@ import { formUrlAllowed, submitContactForm } from "./kernel";
 import { replyEmail, sendEmail } from "./mail";
 import { notifyUser } from "./notify";
 import { checkRecipient, consumeSendBudget, contentProblem, footerFor } from "./safety";
+import { q1 } from "./db";
 import { addEvent, addMessage, caseMessages, createAction, getCase, getUser, patchCase } from "./store";
 import type { CaseRow, Draft, PlanStep, UserRow } from "./types";
 import { DAY_MS, clip, fmtDate } from "./util";
@@ -69,8 +70,11 @@ export async function prepareStep(caseId: string, stepId: string): Promise<Prepa
     form_url: step.kind === "web_form" ? step.recipient ?? undefined : undefined,
     note: d.used === "template" ? "The writing model could not produce a clean draft, so this is a plain template. Edit freely." : step.intent,
   };
-  // The first email, escalations, forms and formal notices are always the human's call.
-  const needsApproval = step.needs_approval || step.kind === "escalate_email" || step.kind === "web_form" || step.level === 3 || (step.kind === "email" && c.emails_sent === 0);
+  // Escalations, forms and formal notices are always the human's call. So is the first email, unless the owner gave a standing
+  // approval for gentle reminders to this roster (group.auto_send).
+  const groupAuto = c.group_id ? (await q1<{ auto_send: boolean }>("SELECT auto_send FROM groups WHERE id = $1", [c.group_id]))?.auto_send === true : false;
+  const risky = step.kind === "escalate_email" || step.kind === "web_form" || step.level === 3;
+  const needsApproval = risky || (groupAuto ? false : step.needs_approval || (step.kind === "email" && c.emails_sent === 0));
   return { draft, needsApproval, blocked: null };
 }
 
@@ -205,6 +209,7 @@ export async function deliverStep(caseId: string, stepId: string, draft: Draft, 
   await addMessage({ caseId, direction: "out", from: env.agentmailInbox, to: [to, ...draft.cc], subject: draft.subject, body: draft.body, amMessageId: sent.message_id, amThreadId: sent.thread_id });
   await patchCase(caseId, { emails_sent: c.emails_sent + 1 });
   await addEvent(caseId, "email_sent", step.kind === "escalate_email" ? `Escalated to ${to}` : `Email sent to ${c.counterparty_name}`, clip(draft.body, 600), { step_id: stepId, level: step.level, to });
+  if (c.group_id) await notifyUser(user, c, `Reminded ${c.counterparty_name}`, `Badger sent a reminder for "${c.title}" (reminder ${c.emails_sent + 1}). Open the roster to see where everyone stands.`, { quiet: true });
   await advance(caseId, stepId, "done");
   return { outcome: "sent" };
 }

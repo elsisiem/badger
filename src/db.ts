@@ -1,6 +1,9 @@
 import pg from "pg";
 import { env } from "./env";
 
+// DATE columns stay plain "YYYY-MM-DD" strings (node-pg would otherwise hand back JS Dates and shift them by timezone).
+pg.types.setTypeParser(1082, (v: string) => v);
+
 // Neon's pooled endpoint handles connection churn; keep our own pool small.
 export const pool = new pg.Pool({ connectionString: env.databaseUrl.replace(/[?&]sslmode=[^&]*/, ""), max: 8, ssl: { rejectUnauthorized: false } });
 pool.on("error", (e) => console.error("pg pool error", e.message));

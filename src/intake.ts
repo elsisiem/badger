@@ -4,7 +4,8 @@ import { z } from "zod";
 import { env } from "./env";
 import { createCase } from "./engine";
 import { findContacts } from "./research";
-import { SCENARIOS } from "./sim";
+import { rosterTools } from "./rosterTools";
+import { scenarioForInbox } from "./sim";
 import { getUser } from "./store";
 
 /**
@@ -44,7 +45,7 @@ const openCaseTool = createTool({
     const uid = userIdOf(ctx);
     const user = uid ? await getUser(uid) : null;
     if (!user) return { ok: false, case_id: null, title: null, error: "Not signed in." };
-    const sandbox = Object.values(SCENARIOS).find((s) => s.inbox.toLowerCase() === input.counterparty_email.trim().toLowerCase());
+    const sandbox = scenarioForInbox(input.counterparty_email);
     const res = await createCase(user, {
       title: input.title,
       counterparty_name: input.counterparty_name,
@@ -55,7 +56,7 @@ const openCaseTool = createTool({
       currency: input.currency ?? "USD",
       context: input.context,
       tone: input.tone ?? "polite",
-      scenario: user.kind === "demo" && sandbox ? sandbox.key : null,
+      scenario: user.kind === "demo" ? sandbox : null,
     });
     return res.ok ? { ok: true, case_id: res.case.id, title: res.case.title, error: null } : { ok: false, case_id: null, title: null, error: res.error };
   },
@@ -65,7 +66,7 @@ export const intakeAgent = new Agent({
   id: "intake",
   name: "Badger",
   model: env.modelSmart,
-  tools: { find_contact: findContactTool, open_case: openCaseTool },
+  tools: { find_contact: findContactTool, open_case: openCaseTool, ...rosterTools },
   instructions: `You are Badger, a warm, slightly cheeky honey badger who nags people so the user doesn't have to. You help the user open a "case": someone owes them something (money, a reply, a refund, a cancellation, a deposit, a teammate's part) and chasing them is awkward.
 
 Your job in chat: get just enough to open the case, then open it. Be brief and friendly. Ask at most two questions at a time and never repeat what the user already told you.
@@ -78,5 +79,12 @@ You need: (1) who to chase and a real email address for them, (2) what the user 
 - Tone: "polite" by default. Use "firm" if they say they're fed up, "badger" if they want relentless-but-cheeky.
 - You are not a lawyer; never give legal advice or promise outcomes.
 - Demo accounts can only chase the sandbox characters: alex-roommate@agentmail.to (Alex Rivera, a roommate who owes money) and sunnyside-gym@agentmail.to (Sunnyside Fitness, a gym that kept charging after cancellation). If a demo user tries something else, tell them to sign in with their email to open real cases.
+ROSTERS. Users can also keep a ledger for people who owe them regularly (students, tenants, club members). You have tools for it:
+- create_group, add_people, log_charge, mark_paid, who_owes, list_groups, pause_reminders.
+- "Sam had a lesson today, $45" -> log_charge. "Lee paid" / "Lee paid 30" -> mark_paid. "who owes me?" -> who_owes.
+- Once something is overdue, Badger automatically opens a case and sends gentle reminders on the group's schedule; marking someone paid closes it. You never need to open a case yourself for a rostered person.
+- Before create_group, ask once whether the people expect payment reminders from the user; only then pass contacts_expect_reminders true. Students under 18: use a parent's email.
+- Never claim reminders are automatic without approval: by default each reminder needs the user's OK. Only the user can switch on auto-send in the roster settings.
+- After any change, confirm in one short line with the amount and the new balance.
 Keep replies short. No markdown headings. Today is ${new Date().toISOString().slice(0, 10)}.`,
 });
