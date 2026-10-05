@@ -442,6 +442,7 @@
       try { d = await api("/api/groups/" + id); } catch { return; }
       const g = d.group;
       titleEl.textContent = g.name;
+      ffBtn.hidden = !d.owed_cents;
       totalEl.className = "tag " + (d.owed_cents ? "amber" : "green");
       totalEl.textContent = d.owed_cents ? money(d.owed_cents, g.currency) + " outstanding" : "everyone is paid up";
       coachEl.replaceChildren(isDemo ? h("div", { class: "coach" }, face(d.owed_cents ? "nagging" : "victory", 44), h("div", {}, h("b", {}, d.owed_cents ? "Badger is on it." : "All clear."), h("span", {}, d.owed_cents ? " Each parent below has an overdue balance, so Badger opened a case and is sending gentle reminders (this roster has auto-reminders on). Open a person's case to watch, or press Fast-forward." : " Every parent paid and Badger stopped. That's the whole loop: you logged the lessons, Badger did the asking."), h("span", { class: "fine" }, " Sandbox: the parents are fictional characters; the emails are real.")))

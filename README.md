@@ -28,6 +28,22 @@ Someone owes you something: a friend with your $64, a gym that won't cancel, a l
 
 The sandbox clock is 1 day = 20 s. Real cases run on a real clock (days between nudges).
 
+## Rosters: for people who bill people
+
+Teachers, coaches, landlords and club treasurers don't have one awkward debt, they have twenty small ones. A **group** is a roster: you log what each person owes (`Sam, lesson, $45`), and Badger runs the rest.
+
+- **One running balance per person.** Log lessons from the web, or just text Badger.
+- **Badger opens a collection case automatically** when something is overdue (after the grace period you choose), and sends gentle reminders on your schedule. More lessons logged? The open case updates instead of duplicating.
+- **Mark them paid and it stops.** Part payments are applied oldest-first.
+- **Standing approval is opt-in.** By default every reminder waits for your tap. Turn on "send gentle reminders without asking me" per group if you want hands-off; anything firmer, or any change of channel, still asks.
+- **Built for real relationships:** use a parent's email for under-18s, you confirm your contacts expect reminders before a group can send anything, nobody is emailed more than once a day, and a STOP reply ends it forever.
+
+Try it: **Try the teacher demo** on the home page.
+
+## Text it from your chat apps
+
+Telegram, Slack and WhatsApp all work the same way. Say `Sam had a lesson today, $45`, `Lee paid`, or `who owes me?`, and Badger answers from your ledger. It also messages you when it needs a decision (Telegram gets Approve / Skip buttons). Each app switches on when you add its credentials. Setup guides: [`docs/CHANNELS.md`](docs/CHANNELS.md).
+
 ## How the sponsor tools are used
 
 | Tool | Role |
@@ -83,11 +99,14 @@ src/research.ts   Exa
 src/kernel.ts     Kernel browser form-filling
 src/mail.ts       AgentMail client      src/sim.ts  the sandbox cast + fake gym website
 src/intake.ts     chat agent + tools    src/api.ts  HTTP API, webhook, chat stream
+src/groups.ts     rosters, ledger, auto-opened collection cases
+src/channels.ts   Telegram / Slack / WhatsApp router + signature checks
+src/rosterTools.ts  agent tools: log_charge, mark_paid, who_owes...
 public/           the app (vanilla JS) and the built assistant-ui widget
 ```
 
 ## Roadmap
 
-SMS and WhatsApp channels, voice calls for the people who ignore email, shared team cases ("who hasn't done their slides"), a daily briefing via a Mastra scheduled workflow, and a landlord/repair-request playbook with local-law citations.
+Voice calls for the people who ignore email, shared team cases ("who hasn't done their slides"), recurring charges (monthly rent, dues), payment links, a daily briefing via a Mastra scheduled workflow, and a landlord/repair-request playbook with local-law citations.
 
 Built for the Personal Agents hackathon.

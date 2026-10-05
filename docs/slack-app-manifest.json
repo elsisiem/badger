@@ -1,0 +1,23 @@
+{
+  "display_information": {
+    "name": "Badger",
+    "description": "The agent that nags so you don't have to. Log what people owe you, and Badger handles the reminders.",
+    "background_color": "#2b2b33"
+  },
+  "features": {
+    "bot_user": { "display_name": "Badger", "always_online": true },
+    "app_home": { "home_tab_enabled": false, "messages_tab_enabled": true, "messages_tab_read_only_enabled": false }
+  },
+  "oauth_config": {
+    "scopes": { "bot": ["chat:write", "im:history", "im:read", "im:write"] }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://badger-nags.fly.dev/api/channels/slack/events",
+      "bot_events": ["message.im"]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
