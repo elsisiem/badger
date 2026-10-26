@@ -6,13 +6,12 @@
   "description": "The agent that nags so you don't have to.",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
-    "start": "node dist/server.js",
-    "build": "tsc -p tsconfig.build.json && vite build",
+    "start": "tsx src/server.ts",
+    "build": "vite build -c vite.chat.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm run test",
-    "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
-    "build:chat": "vite build -c vite.chat.config.ts"
+    "db:migrate": "tsx --env-file=.env scripts/migrate.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.130",

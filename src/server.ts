@@ -27,16 +27,14 @@ app.use("*", async (c, next) => {
 app.route("/", api);
 app.route("/", rosterApi);
 
-// The built React app. Anything that is not an API or sandbox route falls back to index.html (client-side routing).
-const webRoot = existsSync(join(process.cwd(), "dist", "web")) ? join(process.cwd(), "dist", "web") : join(process.cwd(), "public");
-const webRel = webRoot.endsWith("web") ? "./dist/web" : "./public";
+// The app in public/ (vanilla JS plus the chat widget built by `npm run build`). Anything that is not an API or sandbox route falls back to index.html.
+const webRoot = join(process.cwd(), "public");
 if (existsSync(webRoot)) {
-  app.use("/assets/*", serveStatic({ root: webRel }));
-  app.use("/*", serveStatic({ root: webRel }));
+  app.use("/*", serveStatic({ root: "./public" }));
   const index = readFileSync(join(webRoot, "index.html"), "utf8");
   app.get("*", (c) => (c.req.path.startsWith("/api/") ? c.json({ error: "Not found" }, 404) : c.html(index)));
 } else {
-  app.get("/", (c) => c.text("Badger API is running. Build the web app with `npm run build` or run `npm run dev:web`."));
+  app.get("/", (c) => c.text("Badger API is running, but public/ was not found. Run the server from the repository root."));
 }
 
 app.onError((e, c) => {
